@@ -6,13 +6,14 @@
  * 
  * Credits to World Weather Online <http://www.worldweatheronline.com>
  * 
- * @category Weather Forecast
  * @author Giovanni Ramos <giovannilauro@gmail.com>
- * @copyright 2012, Giovanni Ramos
+ * @copyright 2012-2013, Giovanni Ramos
  * @since 2012-10-08
+ * @link http://github.com/giovanniramos/WeatherForecast
+ * @category Weather Forecast
  * @version 1.1
  * 
- */
+ * */
 class WeatherForecast
 {
     /**
