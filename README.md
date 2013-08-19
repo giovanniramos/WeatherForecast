@@ -11,7 +11,7 @@ This is an API wrapper for worldweatheronline.com which provides access to meteo
 
 ### Features
 * Simple access to meteorological and weather data
-* Data is cached for 1 hour
+* By default the data is cached for 1 hour
 * No adverts
 
 To use the API you need to sign up for API access on [WorldWeatherOnline](http://worldweatheronline.com) (Registration is free).
