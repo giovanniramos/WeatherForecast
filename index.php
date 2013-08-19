@@ -19,8 +19,11 @@ $weather->setRequest('New York', 'United States Of America', 5);
 // Defines the US unit of measurement
 $weather->setUSMetric(true);
 
+// Defines enabling caching of requests and optionally the lifetime of cache file in seconds
+#$weather->setCaching(true, 3600);
+
 // Defines the display of the error message on failure
-//$weather->setDisplayError(false);
+#$weather->setDisplayError(false);
 ?>
 <html> 
     <head>
@@ -73,8 +76,7 @@ $weather->setUSMetric(true);
                 </div>
                 <?php
             }
-            ?>
-
-        <?php } ?>
+        }
+        ?>
     </body>
 </html>

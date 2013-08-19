@@ -11,7 +11,7 @@
  * @since 2012-10-08
  * @link http://github.com/giovanniramos/WeatherForecast
  * @category Weather Forecast
- * @version 1.1
+ * @version 1.2
  * 
  * */
 class WeatherForecast
@@ -44,6 +44,24 @@ class WeatherForecast
      * 
      * */
     private static $display_error = true;
+
+    /**
+     * Enable caching of the requests
+     * 
+     * @access private static
+     * @var boolean
+     * 
+     * */
+    private static $caching = true;
+
+    /**
+     * Lifetime of the cache file
+     * 
+     * @access private static
+     * @var int
+     * 
+     * */
+    private static $cache_life = 3600;
 
     /**
      * API Key
@@ -154,6 +172,18 @@ class WeatherForecast
     }
 
     /**
+     * Defines enabling caching of requests
+     * 
+     * @param boolean $caching Enable caching (default: TRUE)
+     * @param int $cache_life Lifetime of the cache in seconds (default: 1 HOUR = 3600)
+     */
+    public static function setCaching($caching = true, $cache_life = 3600)
+    {
+        self::$caching = (boolean) $caching;
+        self::$cache_life = (int) $cache_life;
+    }
+
+    /**
      * Defines the name of the city
      * 
      * @param string $city City name
@@ -229,44 +259,61 @@ class WeatherForecast
         // Stores the request URL
         $request = self::$request[$type_of_request] . '?q=' . $city . $country . '&format=xml&num_of_days=' . $num_of_days . '&key=' . $key;
 
-        // Lifetime of the cache file, in seconds (1 hour = 3600)
-        $cache_life = '3600';
+        // Caching disabled
+        if (self::$caching == false) {
+            $doc = simplexml_load_file($request, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-        // Cache file
-        $cache_file = 'cache/cached-' . (substr($key, 0, 8) . '-' . $city . $country) . '.xml';
+            if ($doc === FALSE) {
+                exit('Data could not be retrieved for location: <strong>' . self::$city . '-' . self::$country . '</strong>.');
+            }
 
-        // Generates the cache file if it does not exist or has expired life time
-        $filemtime = @filemtime($cache_file);
-        if (!$filemtime || (time() - $filemtime >= $cache_life)) {
-            // Starts the request to cache
-            $contents = @file_get_contents($request);
-
-            // Reads the request and checks for errors
-            $doc = simplexml_load_string($contents);
-
-            // Does not make the file cache on error
+            // Stops the script if there errors
             if (isset($doc->error)) {
-                $doc_error = $doc->error;
-
-                $msg = !empty($doc_error->msg) ? $doc_error->msg : 'Data could not be retrieved.';
+                $msg = !empty($doc->error->msg) ? $doc->error->msg : 'Data could not be retrieved.';
 
                 if (self::$display_error) {
                     exit('<strong style="color:red;">' . $msg . '</strong>');
                 }
-            } else {
-                file_put_contents($cache_file, $contents);
             }
-        }
-
-        // Initiates the request
-        if (filesize($cache_file) > 0) {
-            $doc = simplexml_load_file($cache_file);
 
             self::$has_response = true;
 
             return self::$doc = $doc;
         } else {
-            return null;
+            // Cache file
+            $cache_file = 'cache/cached-' . (substr($key, 0, 8) . '-' . $city . $country) . '.xml';
+
+            // Generates the cache file if it does not exist or has expired life time
+            $filemtime = @filemtime($cache_file);
+            if (!$filemtime || (time() - $filemtime >= self::$cache_life)) {
+                // Starts the request to cache
+                $contents = @file_get_contents($request);
+
+                // Reads the request and checks for errors
+                $doc = simplexml_load_string($contents);
+
+                // Does not make the file cache on error
+                if (isset($doc->error)) {
+                    $msg = !empty($doc->error->msg) ? $doc->error->msg : 'Data could not be retrieved.';
+
+                    if (self::$display_error) {
+                        exit('<strong style="color:red;">' . $msg . '</strong>');
+                    }
+                } else {
+                    file_put_contents($cache_file, $contents);
+                }
+            }
+
+            // Initiates the request
+            if (filesize($cache_file) > 0) {
+                $doc = simplexml_load_file($cache_file);
+
+                self::$has_response = true;
+
+                return self::$doc = $doc;
+            } else {
+                return null;
+            }
         }
     }
 
